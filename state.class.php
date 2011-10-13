@@ -83,7 +83,10 @@ class State
    */
   public function setNextStates($states)
   {
-    $this->nextStates = $states;
+    $this->nextStates = array();
+    foreach ($states as $state) {
+      $this->nextStates[$state->name] = $state;
+    }
   }
 
   /**
@@ -91,7 +94,16 @@ class State
    */
   public function addNextState($state)
   {
-    $this->nextStates[] = $state;
+    $this->nextStates[$state->name] = $state;
+  }
+
+  /*
+   * Get next state by name
+   */
+  public function nextState($name)
+  {
+    $nextState = $this->nextStates[$name];
+    return isset($nextState) ? $nextState : false;
   }
 
   /*
@@ -99,11 +111,7 @@ class State
    */
   public function nextStateNames()
   {
-    $names = array();
-    foreach ($this->nextStates as $state) {
-      $names[] = $state->name;
-    }
-    return $names;
+    return array_keys($this->nextStates);
   }
 
   /*
@@ -122,8 +130,13 @@ class State
     return in_array($group, $this->groups);
   }
 
+  /*
+   * Check if given user/group is authorized to set next state
+   * AND that next state is valid for this state
+   */
   public function isAuthorizedForNextState($group, $state_name)
   {
-    return $this->isAuthorized($group) && $this->isNextState($state_name);
+    $nextState = $this->nextState($state_name);
+    return $nextState && $nextState->isAuthorized($group);
   }
 }
